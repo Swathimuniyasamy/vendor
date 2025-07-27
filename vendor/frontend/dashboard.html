@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cafe Vendor Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', cursive;
+      background: 
+        linear-gradient(to right, rgba(45, 40, 53, 0.7), rgba(203, 30, 93, 0.7)),
+        url('frontend/image/dash.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #ece9e9;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 220px;
+      background: rgba(252, 232, 232, 0.3);
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .sidebar h2 {
+      margin: 0;
+      font-size: 22px;
+      text-align: center;
+    }
+
+    .content {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .dashboard-box {
+      background-color: rgba(228, 163, 163, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 1000px;
+      margin: auto;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      display: none;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 14px;
+      text-align: center;
+      border-bottom: 1px solid rgba(124, 94, 94, 0.2);
+    }
+
+    th {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      background-color: #edabb0;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #e14b5a;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .top-bar h1 {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div>
+      <h2>☕ Cafe Panel</h2>
+    </div>
+    <div>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="top-bar">
+      <h1>Welcome, <span id="username-display"></span></h1>
+      <div>
+        <button onclick="toggleDashboard()">Show Products</button>
+        <button onclick="toggleShops()">Show Shops</button>
+      </div>
+    </div>
+
+    <!-- Product Dashboard -->
+    <div class="dashboard-box" id="dashboard">
+      <h2 style="text-align:center;">Cafe Product Requirements</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Stock in Cafe</th>
+            <th>Available in Market</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="product-table"></tbody>
+      </table>
+    </div>
+
+    <!-- Shop Info Dashboard -->
+    <div class="dashboard-box" id="shop-info">
+      <h2 style="text-align:center;">Nearby Shops Availability</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Shop Name</th>
+            <th>Location</th>
+            <th>Rating</th>
+            <th>Contact</th>
+          </tr>
+        </thead>
+        <tbody id="shop-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const user = localStorage.getItem("vendorUsername");
+    if (!user) {
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("username-display").innerText = user;
+    }
+
+    const products = [
+      { name: "Coffee Beans", shopStock: 5, marketStock: 100 },
+      { name: "Milk Packets", shopStock: 2, marketStock: 80 },
+      { name: "Paper Cups", shopStock: 0, marketStock: 200 },
+      { name: "Sugar Sachets", shopStock: 10, marketStock: 300 },
+      { name: "Tea Powder", shopStock: 1, marketStock: 60 },
+    ];
+
+    const shops = [
+      { name: "FreshMart Supplies", location: "Main Road", rating: "4.5⭐", contact: "9876543210" },
+      { name: "Beverage Bazaar", location: "Market Street", rating: "4.2⭐", contact: "9123456780" },
+      { name: "Daily Café Needs", location: "MG Road", rating: "4.8⭐", contact: "9345678901" },
+      { name: "Café Essentials", location: "North Avenue", rating: "4.0⭐", contact: "9001234567" }
+    ];
+
+    function loadTable() {
+      const table = document.getElementById("product-table");
+      table.innerHTML = "";
+      products.forEach(product => {
+        let status = "";
+        if (product.shopStock === 0) {
+          status = "<span style='color: red;'>Out of Stock</span>";
+        } else if (product.shopStock < 5) {
+          status = "<span style='color: orange;'>Low Stock</span>";
+        } else {
+          status = "<span style='color: lightgreen;'>Available</span>";
+        }
+
+        table.innerHTML += `
+          <tr>
+            <td>${product.name}</td>
+            <td>${product.shopStock}</td>
+            <td>${product.marketStock}</td>
+            <td>${status}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function loadShopTable() {
+      const table = document.getElementById("shop-table");
+      table.innerHTML = "";
+      shops.forEach(shop => {
+        table.innerHTML += `
+          <tr>
+            <td>${shop.name}</td>
+            <td>${shop.location}</td>
+            <td>${shop.rating}</td>
+            <td>${shop.contact}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function toggleDashboard() {
+      const dashboard = document.getElementById("dashboard");
+      const shopInfo = document.getElementById("shop-info");
+      shopInfo.style.display = "none";
+      if (dashboard.style.display === "none" || dashboard.style.display === "") {
+        loadTable();
+        dashboard.style.display = "block";
+      } else {
+        dashboard.style.display = "none";
+      }
+    }
+
+    function toggleShops() {
+      const dashboard = document.getElementById("dashboard");
+      const shopInfo = document.getElementById("shop-info");
+      dashboard.style.display = "none";
+      if (shopInfo.style.display === "none" || shopInfo.style.display === "") {
+        loadShopTable();
+        shopInfo.style.display = "block";
+      } else {
+        shopInfo.style.display = "none";
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("vendorUsername");
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>
